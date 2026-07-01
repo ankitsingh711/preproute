@@ -74,6 +74,9 @@ export function PreviewPublishPage() {
 
   const publishMutation = useMutation({
     mutationFn: async () => {
+      // The API rejects `expiry_date`/`scheduled_date: null` outright (same
+      // pattern as `status: null` on test creation) — it wants the field
+      // omitted entirely rather than explicitly nulled.
       const expiry_date = computeExpiry(liveUntil, customDate, customTime)
       const scheduled_date =
         publishMode === 'schedule' && scheduleDate
@@ -82,8 +85,8 @@ export function PreviewPublishPage() {
 
       return updateTest(testId, {
         status: publishMode === 'schedule' ? 'scheduled' : 'live',
-        expiry_date,
-        scheduled_date,
+        ...(expiry_date ? { expiry_date } : {}),
+        ...(scheduled_date ? { scheduled_date } : {}),
       })
     },
     onSuccess: () => {
@@ -97,7 +100,14 @@ export function PreviewPublishPage() {
   if (!test) return <p className="text-sm text-muted">Loading test…</p>
 
   const questions = questionsQuery.data ?? []
-  const allDone = questions.length >= test.total_questions && questions.length > 0
+  // The test's own `questions` array (from GET /tests/:id) is the source of
+  // truth for whether enough questions are attached — the staging API's
+  // fetchBulk endpoint has been observed to intermittently return an empty
+  // result for ids that the test record still references, so publishing
+  // shouldn't be blocked on that call succeeding.
+  const attachedCount = test.questions?.length ?? 0
+  const allDone = attachedCount >= test.total_questions && attachedCount > 0
+  const questionDetailsUnavailable = attachedCount > 0 && questions.length === 0 && questionsQuery.isSuccess
 
   if (published) {
     return (
@@ -124,7 +134,7 @@ export function PreviewPublishPage() {
           )}
         >
           <CheckCircle2 className="h-3.5 w-3.5" />
-          {questions.length} / {test.total_questions} Questions done
+          {attachedCount} / {test.total_questions} Questions done
         </span>
       </div>
 
@@ -140,6 +150,14 @@ export function PreviewPublishPage() {
             <Pencil className="h-3.5 w-3.5" /> Edit questions
           </Link>
         </div>
+
+        {questionDetailsUnavailable && (
+          <p className="mb-3 rounded-lg bg-amber-bg px-4 py-2 text-sm text-amber-text">
+            Question previews are temporarily unavailable, but {attachedCount} question
+            {attachedCount === 1 ? ' is' : 's are'} attached to this test and it's ready to
+            publish.
+          </p>
+        )}
 
         <div className="flex flex-col gap-3">
           {questions.map((q, i) => (
