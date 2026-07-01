@@ -40,6 +40,10 @@ export function emptyQuestionDraft(): QuestionDraft {
   }
 }
 
+function isBlankDraft(q: QuestionDraft) {
+  return !q.persistedId && !q.question && !q.option1 && !q.option2 && !q.option3 && !q.option4
+}
+
 interface TestDraftState {
   testId: string | null
   questions: QuestionDraft[]
@@ -51,6 +55,7 @@ interface TestDraftState {
   removeQuestion: (localId: string) => void
   setActiveIndex: (index: number) => void
   markSynced: (localId: string, persistedId: string) => void
+  importQuestions: (drafts: QuestionDraft[]) => void
 }
 
 export const useTestDraftStore = create<TestDraftState>()((set) => ({
@@ -90,4 +95,10 @@ export const useTestDraftStore = create<TestDraftState>()((set) => ({
         q.localId === localId ? { ...q, persistedId, dirty: false } : q,
       ),
     })),
+  importQuestions: (drafts) =>
+    set((state) => {
+      const keepExisting = state.questions.filter((q) => !isBlankDraft(q))
+      const questions = [...keepExisting, ...drafts]
+      return { questions, activeIndex: keepExisting.length }
+    }),
 }))

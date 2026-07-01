@@ -1,0 +1,6 @@
+question,option1,option2,option3,option4,correct_option,explanation,difficulty
+What is the value of pi rounded to two decimal places?,3.14,2.71,1.41,1.73,option1,"Pi (π) is approximately 3.14159 which rounds to 3.14.",easy
+Which of these is a prime number?,15,21,17,9,option3,17 has no divisors other than 1 and itself.,easy
+What is the derivative of x^2 with respect to x?,x,2x,x^2,2,option2,Using the power rule the derivative of x^2 is 2x.,medium
+What is the sum of the interior angles of a triangle?,90 degrees,180 degrees,270 degrees,360 degrees,option2,The interior angles of any triangle always sum to 180 degrees.,easy
+Solve for x: 2x + 6 = 14,2,4,6,8,option2,"Subtract 6 from both sides to get 2x = 8, then divide by 2 to get x = 4.",medium

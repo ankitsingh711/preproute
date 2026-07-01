@@ -5,6 +5,7 @@ import { getTest, updateTest } from '@/api/tests'
 import { createQuestionsBulk, fetchQuestionsBulk } from '@/api/questions'
 import { useResolveTestIds } from '@/hooks/useResolveTestIds'
 import { useTestFormOptions } from '@/hooks/useTestFormOptions'
+import { parseQuestionsCsv } from '@/lib/parseQuestionsCsv'
 import { useTestDraftStore, type QuestionDraft } from '@/store/testDraftStore'
 import { TestSummaryCard } from '@/components/tests/TestSummaryCard'
 import { EditTestModal } from '@/components/tests/EditTestModal'
@@ -46,6 +47,7 @@ export function AddQuestionsPage() {
   const queryClient = useQueryClient()
   const [editOpen, setEditOpen] = useState(false)
   const [saveError, setSaveError] = useState<string | null>(null)
+  const [csvWarnings, setCsvWarnings] = useState<string[]>([])
 
   const testQuery = useQuery({ queryKey: ['test', testId], queryFn: () => getTest(testId) })
   const test = testQuery.data
@@ -67,6 +69,13 @@ export function AddQuestionsPage() {
 
   const store = useTestDraftStore()
   const { questions, activeIndex, addQuestion, updateQuestion, setActiveIndex } = store
+
+  async function handleImportCsv(file: File) {
+    const text = await file.text()
+    const { drafts, errors } = parseQuestionsCsv(text)
+    setCsvWarnings(errors)
+    if (drafts.length > 0) store.importQuestions(drafts)
+  }
 
   useEffect(() => {
     if (store.testId === testId) return
@@ -148,6 +157,22 @@ export function AddQuestionsPage() {
         <p className="mb-4 rounded-lg bg-red-50 px-4 py-2 text-sm text-red-500">{saveError}</p>
       )}
 
+      {csvWarnings.length > 0 && (
+        <div className="mb-4 rounded-lg bg-amber-bg px-4 py-2 text-sm text-amber-text">
+          <div className="flex items-center justify-between">
+            <p className="font-medium">CSV import notes</p>
+            <button type="button" onClick={() => setCsvWarnings([])} className="text-xs underline">
+              Dismiss
+            </button>
+          </div>
+          <ul className="mt-1 list-disc pl-5">
+            {csvWarnings.map((w, i) => (
+              <li key={i}>{w}</li>
+            ))}
+          </ul>
+        </div>
+      )}
+
       <div className="flex gap-8">
         <div className="flex w-80 shrink-0 flex-col gap-6">
           <TestSummaryCard test={test} onEdit={() => setEditOpen(true)} />
@@ -177,6 +202,7 @@ export function AddQuestionsPage() {
             onAddQuestion={addQuestion}
             onPrev={() => setActiveIndex(Math.max(0, activeIndex - 1))}
             onNext={() => setActiveIndex(Math.min(questions.length - 1, activeIndex + 1))}
+            onImportCsv={handleImportCsv}
             topicOptions={topicOptions}
             subTopicOptions={subTopicOptions}
           />

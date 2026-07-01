@@ -1,3 +1,4 @@
+import { useRef } from 'react'
 import { ChevronLeft, ChevronRight, Trash2, Upload } from 'lucide-react'
 import { RichTextEditor } from '@/components/questions/RichTextEditor'
 import { Textarea } from '@/components/ui/Field'
@@ -20,6 +21,7 @@ interface QuestionEditorPanelProps {
   onAddQuestion: () => void
   onPrev: () => void
   onNext: () => void
+  onImportCsv: (file: File) => void
   topicOptions: Option[]
   subTopicOptions: Option[]
 }
@@ -41,9 +43,12 @@ export function QuestionEditorPanel({
   onAddQuestion,
   onPrev,
   onNext,
+  onImportCsv,
   topicOptions,
   subTopicOptions,
 }: QuestionEditorPanelProps) {
+  const fileInputRef = useRef<HTMLInputElement>(null)
+
   return (
     <div className="flex-1">
       <div className="mb-4 flex items-center justify-between">
@@ -55,9 +60,26 @@ export function QuestionEditorPanel({
           <Button type="button" variant="secondary" onClick={onAddQuestion} className="px-4 py-2">
             + MCQ
           </Button>
-          <Button type="button" variant="secondary" className="px-4 py-2" title="CSV import (coming soon)">
+          <Button
+            type="button"
+            variant="secondary"
+            className="px-4 py-2"
+            title="Import questions from CSV"
+            onClick={() => fileInputRef.current?.click()}
+          >
             <Upload className="h-3.5 w-3.5" /> CSV
           </Button>
+          <input
+            ref={fileInputRef}
+            type="file"
+            accept=".csv,text/csv"
+            className="hidden"
+            onChange={(e) => {
+              const file = e.target.files?.[0]
+              if (file) onImportCsv(file)
+              e.target.value = ''
+            }}
+          />
         </div>
       </div>
 
