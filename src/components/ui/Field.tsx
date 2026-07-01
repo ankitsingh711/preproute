@@ -1,5 +1,6 @@
 import type { InputHTMLAttributes, ReactNode, TextareaHTMLAttributes } from 'react'
 import { cn } from '@/lib/cn'
+import { inputBase } from '@/lib/inputStyles'
 
 interface FieldWrapperProps {
   label?: string
@@ -22,9 +23,6 @@ export function FieldWrapper({ label, htmlFor, error, className, children }: Fie
     </div>
   )
 }
-
-const inputBase =
-  'w-full rounded-lg border border-border bg-white px-4 py-3 text-sm text-heading placeholder:text-muted focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20 disabled:bg-gray-50 disabled:text-muted'
 
 interface InputProps extends InputHTMLAttributes<HTMLInputElement> {
   label?: string
@@ -59,5 +57,3 @@ export function Textarea({ label, error, id, className, ...props }: TextareaProp
     </FieldWrapper>
   )
 }
-
-export { inputBase }
